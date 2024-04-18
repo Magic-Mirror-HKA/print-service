@@ -8,7 +8,9 @@
 /coverage
 
 # Processed pictures
-/processedPictures/*
+/processedPictures/*.png
+/processedPictures/*.jpg
+/processedPictures/*.pdf
 
 # Jetbrains
 /.idea
