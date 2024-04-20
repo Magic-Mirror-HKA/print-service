@@ -1,7 +1,10 @@
 import express, { Express } from "express";
 import bodyParser from "body-parser";
 import cors from "cors";
-import { handlePostPictureRequest, handleGetPicturesRequest } from "./request-handlers/pictureRequestHandlers";
+import {
+    handlePostPicturePrintRequest,
+    handleCombineRequest
+} from "./request-handlers/pictureRequestHandlers";
 
 const app: Express = express();
 const port = 3002;
@@ -18,9 +21,11 @@ app.use(
 // Middleware to parse JSON request bodies
 app.use(bodyParser.json({ limit: "50mb" }));
 
-app.post("/images", handlePostPictureRequest);
+app.post("/print", handlePostPicturePrintRequest);
 
-app.get("/images", handleGetPicturesRequest);
+app.post("/combine", handleCombineRequest);
+
+// app.get("/images", handleGetPicturesRequest);
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);

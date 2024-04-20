@@ -1,7 +1,6 @@
 import PDFkitDocument from "pdfkit";
-import sharp, { OverlayOptions } from "sharp";
+import sharp, {OverlayOptions} from "sharp";
 import fs from "fs";
-import { v4 as uuid } from "uuid";
 // @ts-ignore
 import * as ImageDataUri from "image-data-uri";
 
@@ -45,10 +44,13 @@ export const convertPictureToPdf = (pictureFilePath: string, outputFileName: str
     }
 };
 
-export const combineTwoPictures = async (underlyingPicture: string, upperPicture: string, outputFileName: string) => {
-
-    const topOffset = 118;
-    const leftOffset = 118;
+export const combineTwoPictures = async (
+    underlyingPicture: string,
+    upperPicture: string,
+    outputFileName: string,
+    topOffset: number,
+    leftOffset: number,
+) => {
 
     const compositeOptions: OverlayOptions[] = [
         {
@@ -67,7 +69,12 @@ export const combineTwoPictures = async (underlyingPicture: string, upperPicture
     }
 }
 
-export const resizePicture = async (pictureFileName: string, width: number, height: number, outputFileName: string) => {
+export const resizePicture = async (
+    pictureFileName: string,
+    width: number,
+    height: number,
+    outputFileName: string
+) => {
     if (!width || !height) {
         throw new Error("Can not resize picture. Width and height doesn't exist");
     }
@@ -87,8 +94,51 @@ export const resizePicture = async (pictureFileName: string, width: number, heig
         .toFile(outputFileName);
 }
 
-// combineTwoPictures(
-//     "assets/landscape-frame.png",
-//     "processedPictures/image-test.png",
-//     `processedPictures/combined-output-${uuid()}.png`
-//     );
+export const getDataURL = (imagePath: string) => {
+    const imageBuffer = fs.readFileSync(imagePath);
+    const base64 = imageBuffer.toString("base64");
+    const mimeType = getMimeType(imagePath);
+
+    return `data:${mimeType};base64,${base64}`;
+}
+
+const getMimeType = (imagePath: string) => {
+    // @ts-ignore
+    const extension = imagePath.split(".").pop().toLowerCase();
+    switch (extension) {
+        case 'jpg':
+        case 'jpeg':
+            return 'image/jpeg';
+        case 'png':
+            return 'image/png';
+        case 'gif':
+            return 'image/gif';
+        case 'svg':
+            return 'image/svg+xml';
+        default:
+            throw new Error('Unsupported image type');
+    }
+}
+
+export const flipImageAboutTheVerticalYAxis = async (
+    imagePath: string,
+    width: number,
+    height: number,
+    outputFilePath: string
+) => {
+    await sharp(imagePath)
+        .flop()
+        .resize(width, height)
+        .toFile(outputFilePath);
+}
+
+// export const removeBackgroundFromPicture = async (
+//     imageSource: ArrayBuffer | Uint8Array | Blob | URL | string | NdArray<Uint8Array>,
+//     outputFileName: string
+// ) => {
+//     const blob = await removeBackground(imageSource);
+//
+//     const url = URL.createObjectURL(blob);
+//
+//     await ImageDataUri.outputFile(url, outputFileName);
+// }

@@ -1,6 +1,4 @@
-import {print as printDocument, getPrinters, Printer} from "pdf-to-printer";
-import PDFkitDocument from "pdfkit";
-import fs from "fs";
+import {getPrinters, print as printDocument, Printer} from "pdf-to-printer";
 
 export const print = async (file: string) => {
     try {
