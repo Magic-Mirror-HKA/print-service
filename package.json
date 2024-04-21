@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "ts-node server.ts",
+    "dev": "ts-node index.ts",
     "app": "ts-node app.ts",
     "print-test": "ts-node services/imageService.ts",
     "test": "echo \"Error: no test specified\" && exit 1"

@@ -4,13 +4,12 @@ import fs from "fs";
 // @ts-ignore
 import * as ImageDataUri from "image-data-uri";
 
-export const preProcessPicture = async (inputFileName: string, dataURL: string) => {
-    await ImageDataUri.outputFile(dataURL, inputFileName);
-
-    // processAndSaveImage(
-    //     inputFile,
-    //     `${inputFile.replace(".png", "-processed.png")}`
-    // );
+export const createFileFromDataUrl = async (inputFileName: string, dataURL: string) => {
+    try {
+        await ImageDataUri.outputFile(dataURL, inputFileName);
+    } catch (error) {
+        console.log("Error when creating file from data URL: ", error);
+    }
 }
 
 export const processAndSaveImage = (inputFileName: string, outputFileName: string) => {
@@ -65,7 +64,7 @@ export const combineTwoPictures = async (
             .composite(compositeOptions)
             .toFile(outputFileName);
     } catch (error) {
-        console.log("An error occured when combining two pictures: ", error);
+        console.log("Error when combining two pictures: ", error);
     }
 }
 
@@ -88,10 +87,14 @@ export const resizePicture = async (
         throw new Error("Can not resize picture. Width and height can not be 0");
     }
 
-    await sharp(pictureFileName)
-        .resize(width, height)
-        .toFormat("png")
-        .toFile(outputFileName);
+    try {
+        await sharp(pictureFileName)
+            .resize(width, height)
+            .toFormat("png")
+            .toFile(outputFileName);
+    } catch (error) {
+        console.log("Error when resizing picture: ", error);
+    }
 }
 
 export const getDataURL = (imagePath: string) => {
@@ -131,14 +134,3 @@ export const flipImageAboutTheVerticalYAxis = async (
         .resize(width, height)
         .toFile(outputFilePath);
 }
-
-// export const removeBackgroundFromPicture = async (
-//     imageSource: ArrayBuffer | Uint8Array | Blob | URL | string | NdArray<Uint8Array>,
-//     outputFileName: string
-// ) => {
-//     const blob = await removeBackground(imageSource);
-//
-//     const url = URL.createObjectURL(blob);
-//
-//     await ImageDataUri.outputFile(url, outputFileName);
-// }

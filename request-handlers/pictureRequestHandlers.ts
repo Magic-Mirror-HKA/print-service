@@ -5,12 +5,14 @@ import {v4 as uuid} from "uuid";
 import {print} from "../services/printService";
 import {
   combineTwoPictures,
-  convertPictureToPdf, flipImageAboutTheVerticalYAxis,
+  convertPictureToPdf,
+  flipImageAboutTheVerticalYAxis,
   getDataURL,
-  preProcessPicture,
+  createFileFromDataUrl,
   resizePicture
 } from "../services/imageService";
 import CombinedPayload from "../entity/CombinedPayload";
+import {deleteFilesAsync} from "../helpers";
 
 const PATH_OUTPUT_PROCESSED_PICTURES = "./processedPictures"
 
@@ -18,8 +20,6 @@ const PATH_ASSETS = "./assets"
 
 export const handlePostPicturePrintRequest = async (req: Request, res: Response, next: NextFunction) => {
   const picture: Picture = req.body;
-
-  console.log("picture: ", picture);
 
   const id = uuid();
 
@@ -38,9 +38,8 @@ export const handlePostPicturePrintRequest = async (req: Request, res: Response,
   const outputCombinedPictureFileName = `combined-image-${id}.png`;
   const outputCombinedPictureFilePath = `${PATH_OUTPUT_PROCESSED_PICTURES}/${outputCombinedPictureFileName}`;
 
-
   // Create a new picture from Baser64 string
-  await preProcessPicture(inputFilePath, picture.source);
+  await createFileFromDataUrl(inputFilePath, picture.source);
 
   // Resize picture so that it fits into the desired foto frame
   await resizePicture(inputFilePath, 3260, 1725, outputResizedPictureFilePath);
@@ -62,7 +61,18 @@ export const handlePostPicturePrintRequest = async (req: Request, res: Response,
   // Print pdf
   setTimeout(async () => {
     await print(outputPdfFilePath);
+
+    // Clean up: Deletes all generated files
+    const filesToBeDeleted = [
+      inputFilePath,
+      outputPdfFilePath,
+      outputResizedPictureFilePath,
+      outputCombinedPictureFilePath,
+    ];
+    deleteFilesAsync(filesToBeDeleted);
   }, 2000);
+
+  console.log("It worked!. Document successfully printed!");
 
   res.status(201).json({
     message: "It worked!. Document successfully printed!"
@@ -74,6 +84,7 @@ export const handleCombineRequest = async (req: Request, res: Response, next: Ne
   const combinedPayload = req.body as CombinedPayload;
 
   const id = uuid();
+
   const outputUnderlyingPictureFileName = `underlying-image-${id}.png`;
   const outputUnderlyingPictureFilePath = `${PATH_OUTPUT_PROCESSED_PICTURES}/${outputUnderlyingPictureFileName}`;
 
@@ -90,11 +101,9 @@ export const handleCombineRequest = async (req: Request, res: Response, next: Ne
   const outputUnderlyingResizedPictureFileName = `underlying-resized-image-${id}.png`;
   const outputUnderlyingResizedPictureFilePath = `${PATH_OUTPUT_PROCESSED_PICTURES}/${outputUnderlyingResizedPictureFileName}`;
 
-  console.log("Combined PAYLOAD: ", combinedPayload);
-
   // Create a new picture from Baser64 string
-  await preProcessPicture(outputUnderlyingPictureFilePath, combinedPayload.underlyingPicture.source);
-  await preProcessPicture(outputOnTopPictureFilePath, combinedPayload.onTopPicture.source);
+  await createFileFromDataUrl(outputUnderlyingPictureFilePath, combinedPayload.underlyingPicture.source);
+  await createFileFromDataUrl(outputOnTopPictureFilePath, combinedPayload.onTopPicture.source);
 
   // Resize onTop and underlying pictures
   await resizePicture(outputOnTopPictureFilePath, 3260, 1725, outputOnTopResizedPictureFilePath);
@@ -117,6 +126,17 @@ export const handleCombineRequest = async (req: Request, res: Response, next: Ne
     id,
     source: getDataURL(outputCombinedFilePath),
   });
+
+  // Clean up: Deletes all generated files
+  const filesToBeDeleted = [
+    outputUnderlyingPictureFilePath,
+    outputOnTopPictureFilePath,
+    outputCombinedFilePath,
+    outputOnTopResizedPictureFilePath,
+    outputUnderlyingResizedPictureFilePath,
+    outputFlippedPictureFilePath,
+  ];
+  deleteFilesAsync(filesToBeDeleted);
 
 }
 
